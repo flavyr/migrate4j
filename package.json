@@ -1,0 +1,22 @@
+{
+  "name": "migrate4j",
+  "version": "1.0.0",
+  "description": "Transactional data migrations for neo4j",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "jest src/"
+  },
+  "keywords": [
+    "neo4j",
+    "nodejs",
+    "node",
+    "migration"
+  ],
+  "author": "Flavyr, Inc.",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^14.0.27",
+    "prettier": "^2.0.5",
+    "typescript": "^3.9.7"
+  }
+}

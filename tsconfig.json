@@ -1,0 +1,23 @@
+{
+  "compilerOptions": {
+    "target": "es2016",
+    "module": "commonjs",
+    "jsx": "react",
+    "noEmit": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noImplicitAny": true,
+    "strictNullChecks": true,
+    "noImplicitThis": true,
+
+    "noUnusedLocals": true,
+    "noImplicitReturns": true,
+
+    "baseUrl": "./",
+    "paths": {},
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+
+    "forceConsistentCasingInFileNames": true
+  }
+}
