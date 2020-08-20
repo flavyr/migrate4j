@@ -1,8 +1,9 @@
 {
   "compilerOptions": {
-    "target": "es2016",
+    "target": "es2017",
     "module": "commonjs",
-    "jsx": "react",
+    "outDir": "lib",
+    "rootDir": "src",
     "noEmit": true,
     "skipLibCheck": true,
     "strict": true,
@@ -19,5 +20,8 @@
     "esModuleInterop": true,
 
     "forceConsistentCasingInFileNames": true
-  }
+  },
+  "include": [
+    "src/**/*"
+  ]
 }

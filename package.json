@@ -1,23 +1,55 @@
 {
   "name": "migrate4j",
-  "version": "1.0.0",
   "description": "Transactional data migrations for neo4j",
-  "main": "src/index.ts",
-  "scripts": {
-    "test": "jest src/"
-  },
+  "version": "1.0.0",
+  "author": "Flavyr, Inc.",
+  "license": "ISC",
+  "homepage": "https://github.com/flavyr/migrate4j",
+  "repository": "flavyr/migrate4j",
   "keywords": [
     "neo4j",
     "nodejs",
     "node",
     "migration"
   ],
-  "author": "Flavyr, Inc.",
-  "license": "ISC",
+  "main": "lib/index.ts",
+  "scripts": {
+    "test": "jest src/",
+    "postpack": "rm -f oclif.manifest.json",
+    "prepack": "rm -rf lib && tsc -b && oclif-dev manifest && oclif-dev readme",
+    "version": "oclif-dev readme && git add README.md"
+  },
+  "bin": {
+    "migrate4j": "./bin/run"
+  },
   "devDependencies": {
     "@types/node": "^14.0.27",
+    "@oclif/dev-cli": "^1",
+    "globby": "^10",
+    "ts-node": "^8",
     "jest": "^26.3.0",
     "prettier": "^2.0.5",
     "typescript": "^3.9.7"
-  }
+  },
+  "dependencies": {
+    "neo4j-driver": "^4.1.1",
+    "@oclif/command": "^1",
+    "@oclif/config": "^1",
+    "@oclif/plugin-help": "^3",
+    "tslib": "^1"
+  },
+  "files": [
+    "/bin",
+    "/lib",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json"
+  ],
+  "oclif": {
+    "commands": "./lib/commands",
+    "bin": "migrate4j",
+    "plugins": [
+      "@oclif/plugin-help"
+    ]
+  },
+  "types": "lib/index.d.ts"
 }
