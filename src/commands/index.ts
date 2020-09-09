@@ -27,7 +27,7 @@ export default class Migrate extends Command {
     try {
       await new Migrator().migrate(flags.to);
     } catch (error) {
-      this.error('Migration failed!', error);
+      this.error('Migration failed!');
     }
 
     this.exit();

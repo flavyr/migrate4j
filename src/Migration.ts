@@ -1,4 +1,4 @@
-import { Driver, Transaction, Session } from 'neo4j-driver';
+import { Driver, Transaction, Session, QueryResult } from 'neo4j-driver';
 
 /* (:M4jMigration)
  *   fileName - string; name of the migration file. Used as the identifier for migrations.
@@ -24,7 +24,7 @@ export abstract class Migration {
     this.fileName = fileName;
   }
 
-  async init() {
+  async init(): Promise<QueryResult> {
     const session = this.driver.session();
     // Create the M4jMigration node if it doesn't already exist (by fileName)
     try {
@@ -33,7 +33,7 @@ export abstract class Migration {
         ON CREATE SET
           m.name = $name,
           m.description = $description,
-          m.createdAt = timestamp()
+          m.createdAt = datetime()
         RETURN m`,
         {
           fileName: this.fileName,
@@ -43,11 +43,22 @@ export abstract class Migration {
       );
     } catch (error) {
       console.error(`Unable to create the migration node for ${this.fileName}!`, error);
-
-      return false;
+      throw error;
     } finally {
       session.close();
     }
+  }
+
+  async migrate() {
+    await this.transaction(async (transaction, session) => {
+      return this.up && (await this.up(transaction, session));
+    });
+  }
+
+  async rollback() {
+    await this.transaction(async (transaction, session) => {
+      return this.down && (await this.down(transaction, session));
+    });
   }
 
   private async transaction(fn: (transaction: Transaction, session: Session) => void) {
@@ -58,22 +69,11 @@ export abstract class Migration {
       await fn(transaction, session);
       await transaction.commit();
     } catch (error) {
-      console.error('Error encountered during transaction. Rolling back.', error);
+      console.error('Error encountered during transaction. Rolling back.');
       await transaction.rollback();
+      throw error;
     } finally {
       session.close();
     }
-  }
-
-  async migrate() {
-    await this.transaction(async (transaction, session) => {
-      return this.up && await this.up(transaction, session);
-    });
-  }
-
-  async rollback() {
-    await this.transaction(async (transaction, session) => {
-      return this.down && await this.down(transaction, session);
-    });
   }
 }

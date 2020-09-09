@@ -1,4 +1,4 @@
-import { driver, auth, Driver, Record } from 'neo4j-driver';
+import { driver, auth, Driver, Record, QueryResult } from 'neo4j-driver';
 import * as fs from 'fs';
 import * as path from 'path';
 import { Migration } from './Migration';
@@ -9,11 +9,11 @@ type MigrationMap = {
 
 export class Migrator {
   driver: Driver;
-  migrations: MigrationMap;
+  migrationMap: MigrationMap;
   migrationsDir: string;
 
   constructor() {
-    this.migrations = {};
+    this.migrationMap = {};
     this.migrationsDir = process.env.M4J_MIGRATION_DIR || './neo4j_migrations';
     this.driver = driver(
       process.env.NEO4J_URI || 'bolt://localhost:7687',
@@ -24,7 +24,7 @@ export class Migrator {
     );
   }
 
-  init() {
+  init(): boolean {
     if (fs.existsSync(this.migrationsDir)) {
       console.error('Migrations directory already exists');
       return false;
@@ -34,8 +34,8 @@ export class Migrator {
       try {
         fs.mkdirSync(this.migrationsDir);
       } catch (error) {
-        console.error('Error encountered creating migrations directory!', error);
-        return false;
+        console.error('Error encountered creating migrations directory!');
+        throw error;
       }
 
       return true;
@@ -49,76 +49,73 @@ export class Migrator {
       return {};
     }
 
-    console.log('Initializing Migration nodes');
+    console.log('Initializing M4jMigration nodes');
     let files = fs.readdirSync(this.migrationsDir).sort();
 
-    if (migration) {
+    if (typeof migration == 'string') {
       files = files.slice(0, files.indexOf(migration) + 1);
     }
 
     const promises = files.map(fileName => {
       const MigrationFile = require(path.resolve(this.migrationsDir, fileName)).default;
       const m = new MigrationFile(fileName, this.driver);
-      this.migrations[fileName] = m;
+      this.migrationMap[fileName] = m;
       return m.init();
     });
 
     await Promise.all(promises);
-    return this.migrations;
+    return this.migrationMap;
   }
 
-  private async createMigratedTo(fileName: string) {
-    try {
-      console.log('creating relationship', fileName);
-      return this.driver.session().run(
-        `OPTIONAL MATCH (:M4jMigration)-[:MIGRATED_TO]->(head:M4jMigration)
-         WHERE NOT (head)-[:MIGRATED_TO]->(:M4jMigration)
-         MERGE (root:M4jMigration { fileName: 'rootMigration' })
-         WITH coalesce(head, root) as prev
-         MATCH (current:M4jMigration { fileName: $fileName })
-         CREATE (prev)-[r:MIGRATED_TO]->(current)
-         RETURN r`,
-        { fileName }
-      );
-    } catch (error) {
-      console.error('Unable to query the database!', error);
-      return error;
-    }
-  }
+  async migrate(migration?: string): Promise<void> {
+    const migrationMap = await this.loadMigrations(migration);
 
-  async migrate(migration?: string): Promise<void[]> {
-    const migrations = await this.loadMigrations(migration);
-
-    const results = await this.driver.session().run(
+    const unMigratedNodes = await this.driver.session().run(
       `MATCH (m:M4jMigration)
        WHERE NOT (m)<-[:MIGRATED_TO]->(:M4jMigration)
        RETURN m.fileName as fileName
        ORDER BY m.fileName`
     );
 
-    let finished = false;
-    const promises = results.records.map((record: Record) => {
-      const fileName = record.get('fileName');
-      if (finished) return Promise.resolve();
+    const migrations = unMigratedNodes.records
+      .map((record: Record) => {
+        const fileName = record.get('fileName');
+        return migrationMap[fileName];
+      })
+      .filter(m => !!m) as Migration[];
 
-      if (fileName) {
-        console.log(`Migrating ${fileName}...`);
-
-        if (migration && migration == fileName) {
-          finished = true;
-        }
-
-        migrations[fileName] && migrations[fileName].migrate();
-        return this.createMigratedTo(fileName);
-      } else {
-        return Promise.reject();
-      }
-    });
-
-    return Promise.all(promises);
+    for await (let _ of this.runMigrations(migrations)) {
+      console.log('✔');
+    }
   }
 
   async rollback(migration?: String) {}
 
   async redo(migration?: String) {}
+
+  private async createRelationship(fileName: string): Promise<QueryResult> {
+    return this.driver.session().run(
+      `OPTIONAL MATCH (:M4jMigration)-[:MIGRATED_TO]->(head:M4jMigration)
+       WHERE NOT (head)-[:MIGRATED_TO]->(:M4jMigration)
+       MERGE (root:M4jMigration { fileName: 'rootMigration' })
+       WITH coalesce(head, root) as prev
+       MATCH (current:M4jMigration { fileName: $fileName })
+       CREATE (prev)-[r:MIGRATED_TO { at: datetime() }]->(current)
+       RETURN r`,
+      { fileName }
+    );
+  }
+
+  private async *runMigrations(migrations: Migration[]): AsyncGenerator<QueryResult> {
+    for (let migration of migrations) {
+      console.log(`Migrating ${migration.fileName}`);
+      try {
+        await migration.migrate();
+        yield await this.createRelationship(migration.fileName);
+      } catch (error) {
+        console.error(error);
+        throw error;
+      }
+    }
+  }
 }
