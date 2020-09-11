@@ -18,7 +18,7 @@ function getTimestamp() {
 
 // prettier-ignore
 const getFileTemplate = (name: string) =>
-`import { Migration } from '../src/Migration';
+`import { Migration } from 'migrate4j';
 
 export default class ${name} extends Migration {
   async up(tx) {
