@@ -4,7 +4,6 @@
     "module": "commonjs",
     "outDir": "lib",
     "rootDir": "src",
-    "noEmit": true,
     "skipLibCheck": true,
     "strict": true,
     "noImplicitAny": true,
@@ -21,7 +20,5 @@
 
     "forceConsistentCasingInFileNames": true
   },
-  "include": [
-    "src/**/*"
-  ]
+  "include": ["src/**/*"]
 }
