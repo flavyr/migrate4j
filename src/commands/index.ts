@@ -8,7 +8,6 @@ export default class Migrate extends Command {
 
   static flags = {
     help: flags.help({ char: 'h' }),
-    // flag with a value (-n, --name=VALUE)
     to: flags.string({
       char: 't',
       description: 'Run migrations and stop after the specified filename.',
@@ -27,7 +26,7 @@ export default class Migrate extends Command {
     try {
       await new Migrator().migrate(flags.to);
     } catch (error) {
-      this.error('Migration failed!');
+      this.error(error);
     }
 
     this.exit();

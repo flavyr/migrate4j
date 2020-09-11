@@ -7,6 +7,13 @@ type MigrationMap = {
   [index: string]: Migration;
 };
 
+// prettier makes this ugly, so...
+// prettier-ignore
+const headMigrationCypher = (
+  `MATCH (:M4jMigration)-[:MIGRATED_TO]->(head:M4jMigration)
+   WHERE NOT (head)-[:MIGRATED_TO]->(:M4jMigration)`
+);
+
 export class Migrator {
   driver: Driver;
   migrationMap: MigrationMap;
@@ -95,8 +102,7 @@ export class Migrator {
 
   private async createRelationship(fileName: string): Promise<QueryResult> {
     return this.driver.session().run(
-      `OPTIONAL MATCH (:M4jMigration)-[:MIGRATED_TO]->(head:M4jMigration)
-       WHERE NOT (head)-[:MIGRATED_TO]->(:M4jMigration)
+      `OPTIONAL ${headMigrationCypher}
        MERGE (root:M4jMigration { fileName: 'rootMigration' })
        WITH coalesce(head, root) as prev
        MATCH (current:M4jMigration { fileName: $fileName })
