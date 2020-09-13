@@ -1,12 +1,17 @@
 {
   "name": "migrate4j",
   "description": "Transactional data migrations for neo4j",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "author": "Flavyr, Inc.",
   "license": "ISC",
   "homepage": "https://github.com/flavyr/migrate4j",
   "repository": "flavyr/migrate4j",
-  "keywords": ["neo4j", "nodejs", "node", "migration"],
+  "keywords": [
+    "neo4j",
+    "nodejs",
+    "node",
+    "migration"
+  ],
   "main": "lib/index.js",
   "scripts": {
     "test": "jest src/",
@@ -33,11 +38,18 @@
     "neo4j-driver": "^4.1.1",
     "tslib": "^1"
   },
-  "files": ["/bin", "/lib", "/npm-shrinkwrap.json", "/oclif.manifest.json"],
+  "files": [
+    "/bin",
+    "/lib",
+    "/npm-shrinkwrap.json",
+    "/oclif.manifest.json"
+  ],
   "oclif": {
     "commands": "./lib/commands",
     "bin": "migrate4j",
-    "plugins": ["@oclif/plugin-help"]
+    "plugins": [
+      "@oclif/plugin-help"
+    ]
   },
   "types": "lib/index.d.ts"
 }
