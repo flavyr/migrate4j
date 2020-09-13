@@ -6,13 +6,8 @@
   "license": "ISC",
   "homepage": "https://github.com/flavyr/migrate4j",
   "repository": "flavyr/migrate4j",
-  "keywords": [
-    "neo4j",
-    "nodejs",
-    "node",
-    "migration"
-  ],
-  "main": "lib/index.ts",
+  "keywords": ["neo4j", "nodejs", "node", "migration"],
+  "main": "lib/index.js",
   "scripts": {
     "test": "jest src/",
     "postpack": "rm -f oclif.manifest.json",
@@ -38,18 +33,11 @@
     "neo4j-driver": "^4.1.1",
     "tslib": "^1"
   },
-  "files": [
-    "/bin",
-    "/lib",
-    "/npm-shrinkwrap.json",
-    "/oclif.manifest.json"
-  ],
+  "files": ["/bin", "/lib", "/npm-shrinkwrap.json", "/oclif.manifest.json"],
   "oclif": {
     "commands": "./lib/commands",
     "bin": "migrate4j",
-    "plugins": [
-      "@oclif/plugin-help"
-    ]
+    "plugins": ["@oclif/plugin-help"]
   },
   "types": "lib/index.d.ts"
 }
