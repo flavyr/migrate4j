@@ -44,7 +44,7 @@ class ${name} extends Migration {
   }
 }
 
-module.exports.default = test;`;
+module.exports.default = ${name};`;
 
 export default class Create extends Command {
   static description = 'Create a new migration file prefixed with the current datetime.';
